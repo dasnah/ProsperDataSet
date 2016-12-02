@@ -1,0 +1,460 @@
+Prosper Data by Snah Desai
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+#install.packages('knitr', repos='http://cran.rstudio.org')
+#install.packages("RColorBrewer")
+
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk.
+# This prevents the code from displaying in the knitted HTML output.
+# You should set echo=FALSE for all code chunks in your file.
+
+setwd('/Users/smdesai/Documents/Udacity/P4')
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+pf <- read.csv('prosperLoanData.csv')
+names(pf)
+```
+
+# Univariate Plots Section
+
+There are 81 variables with 113937 observations. 
+
+```{r echo=FALSE, Univariate_Plots}
+summary(pf)
+
+dim(pf)
+
+str(pf)
+```
+
+------
+# Univariate Analysis
+
+### What is the structure of your dataset?
+Overall there are a total of 113937 observations on teh file and 86 variables. Out of that I observed a few factor variables such as Monthy Loan Payment, Debt to Income Ratio, Employment Status Duration, Prosper Score, Term, Borrower Rate, Borrower APR, Estimated Return, Stated Monthly Income and Lender Yeild
+### What is/are the main feature(s) of interest in your dataset?
+I am looking at varibles that will affect the credit score of an individual looking to borrow. This will also dictate what rate and at what term the user will be able to borrow at through the service.
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+Monthly Income and Loan Payment, Interest Rates, Prosper Score and Term
+### Did you create any new variables from existing variables in the dataset?
+Yes?
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+many graphs had their peaks to the right of the 
+
+# Univariate Section
+
+The result shows the number of "NA" values in each column of the data 
+
+```{r}
+colSums(is.na(pf))
+```
+
+In the code bellow we find the most popular loan term legts whic in order are 36, 60 and 12 months.
+
+```{r}
+pf$Term <- factor(pf$Term)
+table(pf$Term)
+
+
+ggplot(aes(x=Term), data=pf) +
+  geom_bar() 
+```
+
+Bellow is the histogram of Borrower Rates. The high peak is around .36 and the historgarm is right skewed.
+
+```{r}
+qplot(BorrowerRate, data = pf, geom = "histogram", binwidth = .005)
+```
+
+The most popular Borrower Rate is .3177
+
+```{r}
+pf %>%
+  group_by(BorrowerRate) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+Bellow is the histogram for Borrower APR and we can see a peak at around .35
+
+```{r}
+qplot(BorrowerAPR, data = pf, geom = "histogram", binwidth = .001)
+```
+
+As it was visually shown in the histogram above and now a summary count bellow, the most popular APR is .35797
+
+```{r}
+pf %>%
+  group_by(BorrowerAPR) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+Histogram of Lender Yield
+
+```{r}
+qplot(LenderYield, data = pf, geom = "histogram", binwidth = .001)
+```
+
+Summary of yield (profit) of person lending/return on lending
+
+```{r}
+pf %>%
+  group_by(LenderYield) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+Average Lender Yield is .1827
+
+
+```{r}
+summary(pf$LenderYield)
+```
+
+Bellow is a histogram for Estimated Returns. As we can see the graph is skewed with outliers less than 0 and past .2
+
+```{r}
+qplot(EstimatedReturn, data = pf, geom = "histogram", binwidth = .001)
+```
+
+The most common return is .14870
+
+```{r}
+pf %>%
+  group_by(EstimatedReturn) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+The average estimated return .096
+
+```{r}
+summary(pf$EstimatedReturn)
+```
+
+The graph bellow is right skewed without a peak at the right. 
+
+```{r}
+ggplot(aes(x = EmploymentStatusDuration), data=pf) +
+    geom_histogram(bins=100)
+```
+
+Bellow is a histogram of loan ammounts issued showing a right skewed graph.
+
+```{r}
+ggplot(aes(x = LoanOriginalAmount), data = pf) +
+  geom_histogram(bins=10)
+```
+
+Prosper scores range from 1 to 11. 1 being the highest risk and 11 being lowest. The bar graph shows the distribution of scores.
+
+```{r}
+ggplot(aes(x = ProsperScore), data = pf) +
+  geom_bar()
+```
+
+The table shows how many people hold each score 
+
+```{r}
+table(pf$ProsperScore)
+```
+
+Bellow is the histogram of length in months for Employment Status Duration. We can see that after the sqrt is applied there is a clear right skew
+
+```{r}
+ggplot(aes(x = EmploymentStatusDuration), data = pf) +
+    geom_histogram(bins=100)
+
+ggplot(aes(x = EmploymentStatusDuration), data = pf) +
+    geom_histogram(bins=100) +
+    scale_x_sqrt()
+```
+
+Bellow is a summary of the length in months of the employment status at the time the listing was created.
+
+```{r}
+summary(pf$EmploymentStatusDuration)
+```
+
+Bellow is a summary of the Debt to Income Ratios for borrowers.
+
+```{r}
+summary(pf$DebtToIncomeRatio)
+```
+
+Bellow is the debt to income ratio of the borrower at the time the credit profile was pulled. This value is Null if the debt to income ratio is not available. This value is capped at 10.01 (any debt to income ratio larger than 1000% will be returned as 1001%).
+
+```{r}
+ggplot(aes(x = DebtToIncomeRatio), 
+       data=subset(pf,!is.na(DebtToIncomeRatio))) +
+    geom_histogram(bins=100)
+```
+
+Table view of the Debt to Income Ratio's
+
+```{r}
+pf %>%
+  group_by(DebtToIncomeRatio) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+Sumary of the Monthly Loan Payments by borrowers 
+
+```{r}
+summary(pf$MonthlyLoanPayment)
+```
+
+Histogram of Monthly Loan Payments 
+
+```{r}
+ggplot(aes(x = MonthlyLoanPayment), data = pf) +
+  geom_histogram(bins=100)
+```
+
+Instead of using Credit Score Range Lower and Credit Score Range Upper I combined the two with average and created the Credit Score Range Mid. This is what I used to plot the histogram of Credit Scores.
+
+```{r}
+pf$CSRangeMid <- (pf$CreditScoreRangeLower + pf$CreditScoreRangeUpper) /2
+
+ggplot(aes(x = pf$CSRangeMid), data = pf) +
+    geom_histogram(bins=100)
+
+summary(pf$CreditScoreRangeLower)
+```
+
+The histogram of StatedMonthlyIncome is a bit right skewed mainly due to some outliers as outlined in the summary.
+
+After applying log10 to the y-axis the graph better shows the right skew.
+
+Summary of StatedMonthlyIncome shows a big difference between 3rd quadrant and the maximum value thus showing there are large outliers in the data.
+
+```{r}
+qplot(data = pf, x = StatedMonthlyIncome) +
+  xlim(c(0, 50000))
+
+ggplot(aes(x = StatedMonthlyIncome), 
+         data=subset(pf, StatedMonthlyIncome < 50000)) +
+    geom_histogram(bins = 100) +
+    scale_y_log10() 
+
+summary(pf$StatedMonthlyIncome)
+```
+
+The table shows that there are 1140 people with monthly income greater than 20526.67. Most of the people's income is around at 4667.
+
+```{r}
+pf %>%
+  group_by(StatedMonthlyIncome) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+------
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+What would seem like an obvious observation would be the relationship between Prosper Score and Borrower Rate. With the bellow Jitter plot you can see that as Prosper Scores increase the Borrower Rate decreases. This same concept applies to Credit Scores, we can see that as an individuals credit score inceases there is a general trend that their Borrower Rate will decease.
+
+A key indicaiton I came across was that as prosper scores increase an individuals Credit Score also increases and that means they will not only be able to borrow at a better rate but also have a larger potential loan ammount.
+
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+As Borrower Rate increased so did the Estimated Return. People with greater income have better credit scores thus them being able to increase their loan payment and overall amount.
+
+### What was the strongest relationship you found?
+Monthly Loan Payment and Loan Amount and Borrower Rate with Prosper Score.
+
+# Bivariate Plots Section
+
+From the jitter plot we ecan see that the lower the Prosper Score the higher the Borrower Rate is.
+
+```{r echo=FALSE, Bivariate_Plots}
+ggplot(aes(y = BorrowerRate,x = ProsperScore), data = pf) +
+    geom_jitter(alpha=0.01,size=2) 
+```
+
+
+```{r}
+ggplot(aes(factor(ProsperScore), BorrowerRate),  data = pf) +
+  geom_jitter( alpha = .05)  +
+  geom_boxplot( alpha = .5,color = 'blue')+
+  stat_summary(fun.y = "mean", 
+               geom = "point", 
+               color = "red", 
+               shape = 8, 
+               size = 4)+
+  geom_smooth(aes(ProsperScore, 
+                    BorrowerRate),
+                method = "lm", 
+                se = FALSE,size=2)
+```
+
+Bellow is a scatter plot maping Borrower Rate against Estimated Return. We can see that BorrowerRate and Estimated return are positively correlated.
+
+```{r}
+ggplot(aes(y = BorrowerRate,x = EstimatedReturn), data = pf) +
+    geom_jitter(alpha=0.01,size=2) 
+```
+
+From the jitter plot bellow we can see that Credit Score and BorrowerRate are negatively correlated.
+
+```{r}
+ggplot(aes(y = BorrowerRate,x = CSRangeMid), 
+         data = subset(pf,CSRangeMid>300)) +
+    geom_jitter(alpha=0.01,size=2)
+```
+
+Individuals with the best Credit Scores have a Posper score of 10 and there is a drop off before and after.
+
+```{r}
+ggplot(aes(y = CSRangeMid,x = ProsperScore), data = pf) +
+    geom_jitter(alpha=0.01,size=2)
+
+summary(pf$CreditScoreRangeUpper)
+```
+
+We can observe a positive relationship between Loan Amount and Monthly Payment. As the Loan Amount increases, so does the Monthly Payments.
+
+```{r}
+ggplot(aes(x = LoanOriginalAmount, 
+           y = MonthlyLoanPayment  , color = factor(ProsperScore)), 
+       data = pf) +
+      geom_point(alpha = 0.8, size = 2) +
+      geom_smooth(method = "lm", se = FALSE,size=1)  +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='ProsperScore'))
+```
+
+Individuals that Completed their loans people have greater incomes than Defaulted people.
+
+```{r}
+by(pf$StatedMonthlyIncome, pf$LoanStatus, summary)
+```
+
+People with lower Borrower Rates complete their loan payments better than those with higher rates.
+
+```{r}
+by(pf$BorrowerRate, pf$LoanStatus, summary)
+```
+
+From the jitter pot bellow we can see that generally people with good credit score have greater loan amounts.
+
+```{r}
+ggplot(aes(x = CSRangeMid,y = LoanOriginalAmount), 
+       data = subset(pf,CSRangeMid > 350)) +
+  geom_jitter(alpha = .05, size = 2)
+```
+------
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+First, People with higher Prosper Scores tend to pay back their loans quicker. I Things such as the individuals monthly income, credit score, loan amount and periodic loan payment are contributing factors Prosper Score but there is no strong relation between Prosper Score Borrower Rate.
+### Were there any interesting or surprising interactions between features?
+Interestingly enough, most people fulfilled their loan payments. Another interesting thing I found was that people paid their loans with 0 reported income.
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+# Multivariate Plots Section
+
+Bellow is the jitter plot between Loan Original Amount and Monthly Loan Payment colored by Prosper Score
+
+```{r echo=FALSE, Multivariate_Plots}
+ggplot(aes(x = LoanOriginalAmount, y = MonthlyLoanPayment, 
+           color = ProsperScore), data = pf) +
+  geom_jitter(alpha=0.5, size=2) 
+```
+
+An interesting finding to note is that most of the people who are currently paying their loans are self-employed.
+
+```{r}
+ggplot(aes(y = BorrowerRate, x = ProsperScore, color = EmploymentStatus),
+       data=subset(pf,EmploymentStatus != "" & 
+                     EmploymentStatus != "Employed" &
+                     EmploymentStatus != "Other" &
+                     !is.na(ProsperScore))) +
+         geom_jitter(alpha=1, size=2) +
+  scale_color_brewer(type='qual')
+```
+
+Similiar to the graph above the one bellow demostrates the relationship between Employment Status, Borrower Rate and the Prosper score but in the form of a Box Plot.
+
+```{r}
+ggplot(aes(y = BorrowerRate, x = factor(ProsperScore), fill = EmploymentStatus),
+       data=subset(pf,EmploymentStatus != "" & 
+                     EmploymentStatus != "Employed" &
+                     EmploymentStatus != "Other" &
+                     !is.na(ProsperScore))) +
+         geom_boxplot( ) +
+  scale_color_brewer(type='qual')
+```
+
+Bellow is a jitter plot with Montly Loan Payment and Credit Score Range Mid colored by Prosper Score.
+
+```{r}
+ggplot(aes(x = MonthlyLoanPayment, y = CSRangeMid, 
+           color = ProsperScore), data = pf) +
+  geom_jitter(alpha=0.5, size=2) 
+```
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, Plot_One}
+ggplot(aes(x = ProsperScore,y = BorrowerRate), data = pf) +
+  geom_jitter(alpha=0.05,size=2) +
+  ggtitle("ProsperScore with BorrowerRate")
+```
+
+### Description One
+This graph shows ProsperScore and BorrowerRate. The graph shows that Borrower
+Rate decrease as the ProsperScore increases. This graph is to show a clear relationship that prosper score does affect ones ability to borrow and more then that at what rate they can borrow. As this is a major factor in someones loan consideration, its key to establish a realtionship and then look further into what goes into this. 
+
+### Plot Two
+```{r echo=FALSE,message=FALSE, warning=FALSE, Plot_Two}
+ggplot(aes(x = ProsperScore), data = pf) +
+  geom_bar() +
+  ggtitle("ProsperScore Histogram")
+```
+
+### Description Two
+Above is a histogram of ProsperScores and it has a normal distribution. As we can see most scores are between 4 and 8. This histogram shows the distrubtion of scores and will lead to an indicator for further analysis and validation of what affects the prosper and credit scores. 
+
+### Plot Three
+```{r echo=FALSE,message=FALSE, warning=FALSE, Plot_Three}
+colors <- brewer.pal(9, "YlOrRd")
+color_range <- colorRampPalette(colors)
+
+ggplot(aes(x = MonthlyLoanPayment, y = CSRangeMid, 
+           color = factor(ProsperScore)), 
+       data = pf[!is.na(pf$ProsperScore), ]) +
+    geom_jitter(alpha=0.2) +
+    scale_color_manual(values = color_range(11)) +
+    theme_dark() +
+  ylab("StatedMonthly Income in USD") +
+  ggtitle("CreditScoreRangeMid against Monthly Income colored by ProsperScore")
+```
+
+### Description Three
+The graph shows that people with better Prosper Scores and Credit Scores have larger stated montly incomes and the opposite applies. As Credit Score inceases so does the Stated Monthly Income. This was done to understand that while an individuals Credit Scores goes into defining their Prosper Score, does this also mean that there is a change in their incomes. As it relates to my iniditual question I want to understand the factors that ultimetly go into an individuals Credit Score and Propser Score and one of the biggest factors that is many times assumed is Income.
+
+------
+
+# Reflection
+With a total of 113937 data points and 81 variables I first removed "NA" Variables as they may get in the way of my analysis. To rarget some points I was interested in, specifically how Prosper Score is found and affects to Credit Score I looked at variables such as MonthlIncome, CreditScore, BorrowerRate, BorrowerAPR and ProsperScore. There was also outliers in the MonthlyIncome variable.
+
+Some interesting things I found during analysis was that people who have good ProsperScores tends to have a lower BorrowerRate. This same concept applies to Credit Scores, we can see that as an individuals credit score inceases there is a general trend that their Borrower Rate will decease. I aso observed that as someones prosper scores increase an individuals Credit Score also increases and that means they will not only be able to borrow at a better rate but also have a larger potential loan ammount.
+
+All said and done the varibles that affect ProsperScores are the same as which they affect the CreditScore and from there those same variables affect an individuals BorrowRate. Especially as an individuals Income and pre exisitng credit scores do hav an affect on the end borrower rate, Prosper Score and other things such as loan ammount and term. 
+
+There are a great deal of interesting variables to be explored, cleaned and interipuriated. That being said, there was a lot that I was unable to explore such as what areas had the most amount of loans issues as well as their amounts.  I would also be interested in seeing what loan amount had the highest percentage of completing the loan that would also be combiend with looking into what type of loan has the highest percentage of completion.
