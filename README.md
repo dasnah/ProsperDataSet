@@ -1,2 +1,2 @@
 # ProsperDataSet
-Create inquiries and investigate the Prosper P2P lending data set to gain answers to questions and derive insights
+In this project, I used R to apply exploratory data analysis techniques to explore relationships in one variable to multiple variables and to explore a selected data set for distributions, outliers, and anomalies.
